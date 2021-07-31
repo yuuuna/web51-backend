@@ -22,5 +22,8 @@ Route::group(['prefix' => 'api/v1'], function () {
 
         // 2. 使用者登出
         Route::post('/logout', [AuthController::class, 'logout']);
+
+        // 3. 使用者註冊
+        Route::post('/register', [AuthController::class, 'register']);
     });
 });

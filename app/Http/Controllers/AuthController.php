@@ -31,8 +31,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'MSG_WROND_DATA_TYPE', 'data' => ''], 400);
         }
 
-        $user = User::where('email', $request->input('email'))
-            ->first();
+        $user = User::where('email', $request->input('email'))->first();
 
         if (Hash::check($request->input('password'), $user->password)) {
             // 登入成功
@@ -66,5 +65,51 @@ class AuthController extends Controller
 
         // 無效 token
         return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+    }
+
+    /**
+     * 使用者註冊
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function register(Request $request)
+    {
+        // 驗證欄位: Request
+        if (!$request->has('email') || !$request->has('password') || !$request->has('nickname')) {
+            return response()->json(['success' => false, 'message' => 'MSG_MISSING_FIELD', 'data' => ''], 400);
+        }
+
+        // 驗證欄位: 型態
+        $validator = Validator::make($request->all(), [
+            'email' => 'string',
+            'password' => 'string',
+            'nickname' => 'string'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'MSG_WROND_DATA_TYPE', 'data' => ''], 400);
+        }
+
+        // 驗證: 使用者是否已存在
+        $user = User::where('email', $request->input('email'))->first();
+        if ($user) {
+            return response()->json(['success' => false, 'message' => 'MSG_USER_EXISTS', 'data' => ''], 409);
+        }
+
+        // 新增使用者進資料庫 (方法一)
+        $user = User::create([
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+            'nickname' => $request->input('nickname')
+        ]);
+
+        // 新增使用者進資料庫 (方法二)
+        // $user = new User;
+        // $user->email = $request->input('email');
+        // $user->password = Hash::make($request->input('password'));
+        // $user->nickname = $request->input('nickname');
+        // $user->save();
+
+        return response()->json(['success' => true, 'message' => '', 'data' => '註冊成功']);
     }
 }
