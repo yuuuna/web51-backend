@@ -19,5 +19,8 @@ Route::group(['prefix' => 'api/v1'], function () {
     Route::group(['prefix' => '/user'], function () {
         // 1. 使用者登入
         Route::post('/login', [AuthController::class, 'login']);
+
+        // 2. 使用者登出
+        Route::post('/logout', [AuthController::class, 'logout']);
     });
 });

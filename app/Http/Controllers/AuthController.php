@@ -46,4 +46,25 @@ class AuthController extends Controller
         // 登入失敗
         return response()->json(['success' => false, 'message' => 'MSG_INVALID_LOGIN', 'data' => ''], 403);
     }
+
+    /**
+     * 使用者登出
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function logout(Request $request)
+    {
+        $token = $request->header('X-User-Token');
+        $user = User::where('token', $token)->first();
+        if ($user) {
+            // 有效 token
+            $user->token = null;
+            $user->save();
+            return response()->json(['success' => true, 'message' => '', 'data' => '']);
+        }
+
+        // 無效 token
+        return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+    }
 }
