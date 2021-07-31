@@ -17,12 +17,12 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        // 驗證欄位: Request
+        // 驗證: Require
         if (!$request->has('email') || !$request->has('password')) {
             return response()->json(['success' => false, 'message' => 'MSG_MISSING_FIELD', 'data' => ''], 400);
         }
 
-        // 驗證欄位: 型態
+        // 驗證: 型態
         $validator = Validator::make($request->all(), [
             'email' => 'string',
             'password' => 'string'
@@ -75,12 +75,12 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // 驗證欄位: Request
+        // 驗證: Require
         if (!$request->has('email') || !$request->has('password') || !$request->has('nickname')) {
             return response()->json(['success' => false, 'message' => 'MSG_MISSING_FIELD', 'data' => ''], 400);
         }
 
-        // 驗證欄位: 型態
+        // 驗證: 型態
         $validator = Validator::make($request->all(), [
             'email' => 'string',
             'password' => 'string',

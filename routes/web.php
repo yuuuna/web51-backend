@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HouseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,5 +26,11 @@ Route::group(['prefix' => 'api/v1'], function () {
 
         // 3. 使用者註冊
         Route::post('/register', [AuthController::class, 'register']);
+    });
+
+    // house 相關
+    Route::group(['prefix' => '/house'], function () {
+        // 6. 刊登房屋
+        Route::post('/', [HouseController::class, 'store']);
     });
 });
