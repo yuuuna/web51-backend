@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HouseController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\AdsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -51,5 +52,11 @@ Route::group(['prefix' => 'api/v1'], function () {
 
         // 11. 將房屋從收藏列表移除
         Route::delete('/{id}', [CollectionController::class, 'destroy']);
+    });
+
+    // 精選房屋 相關
+    Route::group(['prefix' => '/ads'], function () {
+        // 12. 申請為精選房屋
+        Route::post('/', [AdsController::class, 'store']);
     });
 });
