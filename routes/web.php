@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HouseController;
+use App\Http\Controllers\CollectionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,5 +42,11 @@ Route::group(['prefix' => 'api/v1'], function () {
 
         // 8. 刪除自己刊登的房屋
         Route::delete('/{id}', [HouseController::class, 'destroy']);
+    });
+
+    // 收藏列表 相關
+    Route::group(['prefix' => '/collection'], function () {
+        // 10. 將房屋加入收藏列表
+        Route::post('/', [CollectionController::class, 'store']);
     });
 });
