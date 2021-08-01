@@ -106,7 +106,7 @@ class HouseController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 編輯自己刊登的房屋
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -114,7 +114,91 @@ class HouseController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        // 驗證: 不存在 house
+        $house = House::where('id', $id)->first();
+        if (!$house) {
+            return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
+        }
+
+        // 驗證: 是否有 token，沒有即是訪客 or 是否為登入者刊登的
+        $token = $request->header('X-User-Token');
+        $user = $house->user;
+        if (!$token || $token !== $user->token) {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        }
+
+        // 驗證: 無效 token
+        $user = User::where('token', $token)->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        }
+
+        // 驗證: Require
+        if (
+            !$request->has('area_id') || !$request->has('title')
+            || !$request->has('price') || !$request->has('license_date')
+            || !$request->has('total_area') || !$request->has('public_area')
+            || !$request->has('bedroom_count') || !$request->has('living_room_count')
+            || !$request->has('dining_room_count') || !$request->has('kitchen_count')
+            || !$request->has('floor') || !$request->has('bathroom_count')
+        ) {
+            return response()->json(['success' => false, 'message' => 'MSG_MISSING_FIELD', 'data' => ''], 400);
+        }
+
+        // 驗證: 型態
+        $validator = Validator::make($request->all(), [
+            'area_id' => 'integer',
+            'title' => 'string',
+            'price' => 'string',
+            'license_date' => 'date',
+            'total_area' => 'integer',
+            'public_area' => 'integer',
+            'bedroom_count' => 'integer',
+            'living_room_count' => 'integer',
+            'dining_room_count' => 'integer',
+            'kitchen_count' => 'integer',
+            'floor' => 'integer',
+            'bathroom_count' => 'integer'
+        ]);
+        $area = Area::where('id', $request->input('area_id'))->first();
+        if ($validator->fails() || !$area) {
+            return response()->json(['success' => false, 'message' => 'MSG_WROND_DATA_TYPE', 'data' => ''], 400);
+        }
+
+        // 驗證: 圖片格式
+        $validator = Validator::make($request->all(), [
+            'thumbnail_path' => 'nullable|image',
+        ]);
+        $path = null;
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'MSG_IMAGE_CAN_NOT_PROCESS', 'data' => ''], 400);
+        } else if ($request->file('thumbnail_path')) {
+            // 上傳圖片: 使用亂數名稱
+            $path = $request->file('thumbnail_path')->store('house');
+
+            // 上傳圖片: 指定檔名
+            // $filename = $request->file('thumbnail_path')->getClientOriginalName();
+            // $path = $request->file('thumbnail_path')->storeAs('/house', $filename);
+
+            $house->thumbnail_path = $path;
+        }
+
+        // 更新房屋
+        $house->area_id = $area->id;
+        $house->title = $request->input('title');
+        $house->price = $request->input('price');
+        $house->total_area = $request->input('total_area');
+        $house->public_area = $request->input('public_area');
+        $house->bedroom_count = $request->input('bedroom_count');
+        $house->living_room_count = $request->input('living_room_count');
+        $house->dining_room_count = $request->input('dining_room_count');
+        $house->kitchen_count = $request->input('kitchen_count');
+        $house->license_date = $request->input('license_date');
+        $house->floor = $request->input('floor');
+        $house->bathroom_count = $request->input('bathroom_count');
+        $house->save();
+
+        return response()->json(['success' => true, 'message' => '', 'data' => '']);
     }
 
     /**

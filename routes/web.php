@@ -33,6 +33,9 @@ Route::group(['prefix' => 'api/v1'], function () {
         // 6. 刊登房屋
         Route::post('/', [HouseController::class, 'store']);
 
+        // 7. 刪除自己刊登的房屋
+        Route::put('/{id}', [HouseController::class, 'update']);
+
         // 8. 刪除自己刊登的房屋
         Route::delete('/{id}', [HouseController::class, 'destroy']);
     });
