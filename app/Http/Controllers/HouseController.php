@@ -95,14 +95,21 @@ class HouseController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * 查看房屋
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        //
+        // 驗證: 不存在 house
+        $house = House::where('id', $id)->first();
+        if (!$house) {
+            return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
+        }
+
+        return response()->json(['success' => true, 'message' => '', 'data' => $house]);
     }
 
     /**

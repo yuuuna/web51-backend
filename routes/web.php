@@ -30,6 +30,9 @@ Route::group(['prefix' => 'api/v1'], function () {
 
     // house 相關
     Route::group(['prefix' => '/house'], function () {
+        // 5. 查看房屋
+        Route::get('/{id}', [HouseController::class, 'show']);
+
         // 6. 刊登房屋
         Route::post('/', [HouseController::class, 'store']);
 
