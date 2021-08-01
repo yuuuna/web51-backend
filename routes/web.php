@@ -48,5 +48,8 @@ Route::group(['prefix' => 'api/v1'], function () {
     Route::group(['prefix' => '/collection'], function () {
         // 10. 將房屋加入收藏列表
         Route::post('/', [CollectionController::class, 'store']);
+
+        // 11. 將房屋從收藏列表移除
+        Route::delete('/{id}', [CollectionController::class, 'destroy']);
     });
 });

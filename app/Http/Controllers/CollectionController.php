@@ -77,13 +77,43 @@ class CollectionController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 將房屋從收藏列表移除
      *
+     * @param Request $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        //
+        // 驗證: 不存在 house
+        $house = House::where('id', $id)->first();
+        if (!$house) {
+            return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
+        }
+
+        // 驗證: 是否有 token，沒有即是訪客
+        $token = $request->header('X-User-Token');
+        if (!$token) {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        }
+
+        // 驗證: 無效 token
+        $user = User::where('token', $token)->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        }
+
+        // 驗證: 房屋不存在收藏列表中
+        $collection = Collection::where('user_id', $user->id)
+                                ->where('house_id', $house->id)
+                                ->first();
+        if (!$collection) {
+            return response()->json(['success' => false, 'message' => 'MSG_COLLECTION_NOT_EXISTS', 'data' => ''], 404);
+        }
+
+        // 移除 Collection
+        $collection->delete();
+
+        return response()->json(['success' => true, 'message' => '', 'data' => '']);
     }
 }
