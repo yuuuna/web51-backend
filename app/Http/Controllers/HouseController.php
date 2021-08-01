@@ -118,13 +118,36 @@ class HouseController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 刪除自己刊登的房屋
      *
-     * @param  int  $id
+     * @param Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        //
+        // 驗證: 不存在 house
+        $house = House::where('id', $id)->first();
+        if (!$house) {
+            return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
+        }
+
+        // 驗證: 是否有 token，沒有即是訪客 or 是否為登入者刊登的
+        $token = $request->header('X-User-Token');
+        $user = $house->user;
+        if (!$token || $token !== $user->token) {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        }
+
+        // 驗證: 無效 token
+        $user = User::where('token', $token)->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        }
+
+        // 刪除 house
+        $house->delete();
+
+        return response()->json(['success' => true, 'message' => '', 'data' => '']);
     }
 }
