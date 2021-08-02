@@ -61,5 +61,8 @@ Route::group(['prefix' => 'api/v1'], function () {
 
         // 14. 審核精選房屋
         Route::put('/{id}', [AdsController::class, 'update']);
+
+        // 15. 下架精選房屋
+        Route::delete('/{id}', [AdsController::class, 'destroy']);
     });
 });

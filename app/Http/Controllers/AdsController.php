@@ -156,13 +156,41 @@ class AdsController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 下架精選房屋
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        //
+        // 驗證: 無效 token
+        $token = $request->header('X-User-Token');
+        $user = User::where('token', $token)->first();
+        if (!$token || !$user) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        }
+
+        // 驗證: 是否為管理員
+        if ($user->role !== 'ADMIN') {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        }
+
+        // 驗證: 不存在的精選
+        $ad = Ad::where('id', $id)->first();
+        if (!$ad) {
+            return response()->json(['success' => false, 'message' => 'MSG_AD_NOT_EXISTS', 'data' => ''], 409);
+        }
+
+        // 驗證: 不存在 house
+        $house = House::where('id', $ad->house_id)->first();
+        if (!$house) {
+            return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
+        }
+
+        // 刪除 Ad
+        $ad->delete();
+
+        return response()->json(['success' => true, 'message' => '', 'data' => '']);
     }
 }
