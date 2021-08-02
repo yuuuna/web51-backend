@@ -58,5 +58,8 @@ Route::group(['prefix' => 'api/v1'], function () {
     Route::group(['prefix' => '/ads'], function () {
         // 12. 申請為精選房屋
         Route::post('/', [AdsController::class, 'store']);
+
+        // 14. 審核精選房屋
+        Route::put('/{id}', [AdsController::class, 'update']);
     });
 });
