@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\House;
 use App\Models\HousesExtra;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class HouseController extends Controller
@@ -118,6 +119,24 @@ class HouseController extends Controller
         if (!$house) {
             return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
         }
+
+        // 整理房屋資訊
+        $house = DB::table('houses')
+            ->join('houses_extra', 'houses_extra.house_id', '=', 'houses.id')
+            ->select(
+                'houses.title',
+                'houses.thumbnail_path',
+                'houses_extra.description',
+                'houses.price',
+                DB::raw('houses.price / houses.total_area AS unit_price'),
+                'houses.total_area',
+                DB::raw("houses.bedroom_count + houses.living_room_count + houses.dining_room_count + houses.kitchen_count + houses.bathroom_count AS room_count"),
+                'houses.floor',
+                DB::raw("YEAR(now()) - YEAR(houses.license_date) - (DATE_FORMAT(now(), '%m%d') < DATE_FORMAT(houses.license_date, '%m%d')) AS house_age"),
+                'houses_extra.full_address'
+            )
+            ->where('id', '=', $id)
+            ->get();
 
         return response()->json(['success' => true, 'message' => '', 'data' => $house]);
     }
