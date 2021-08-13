@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Area extends Model
+class City extends Model
 {
     use HasFactory;
 
@@ -16,14 +16,7 @@ class Area extends Model
      */
     protected $fillable = [
         'id',
-        'city_id',
-        'name'
+        'name',
+        'order'
     ];
-
-    public function city()
-    {
-        // $foreignKey -> City key
-        // $localKey -> Area key
-        return $this->hasOne(City::class, 'id', 'city_id');
-    }
 }

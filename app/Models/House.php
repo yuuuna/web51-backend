@@ -38,4 +38,11 @@ class House extends Model
         // $localKey -> House key
         return $this->hasOne(User::class, 'id', 'user_id');
     }
+
+    public function area()
+    {
+        // $foreignKey -> Area key
+        // $localKey -> House key
+        return $this->hasOne(Area::class, 'id', 'area_id')->with('city');
+    }
 }

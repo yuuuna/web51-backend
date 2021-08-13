@@ -33,7 +33,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->input('email'))->first();
 
-        if (Hash::check($request->input('password'), $user->password)) {
+        if (Hash::check($request->input('password'), substr($user->password, 0, -5))) {
             // 登入成功
             $token = hash('sha256', $request->input('email'));
             $user->token = $token;
