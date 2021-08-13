@@ -178,7 +178,8 @@ class HouseController extends Controller
             'bathroom_count' => 'integer'
         ]);
         $area = Area::where('id', $request->input('area_id'))->first();
-        if ($validator->fails() || !$area) {
+        $city = City::where('id', $request->input('city_id'))->first();
+        if ($validator->fails() || !$area || !$city) {
             return response()->json(['success' => false, 'message' => 'MSG_WROND_DATA_TYPE', 'data' => ''], 400);
         }
 
@@ -214,6 +215,12 @@ class HouseController extends Controller
         $house->floor = $request->input('floor');
         $house->bathroom_count = $request->input('bathroom_count');
         $house->save();
+
+        // 新增房屋延伸資訊
+        $houseExtra = HousesExtra::where('house_id', $id)->first();
+        $houseExtra->description = $request->input('description', '');
+        $houseExtra->full_address = $city->name . $area->name . $request->input('address', '');
+        $houseExtra->save();
 
         return response()->json(['success' => true, 'message' => '', 'data' => '']);
     }

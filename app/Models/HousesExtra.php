@@ -11,6 +11,7 @@ class HousesExtra extends Model
 
     public $timestamps = false;
     protected $table = 'houses_extra';
+    protected $primaryKey = 'house_id';
 
     /**
      * The attributes that are mass assignable.
