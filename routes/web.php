@@ -30,6 +30,9 @@ Route::group(['prefix' => 'api/v1'], function () {
         Route::post('/register', [AuthController::class, 'register']);
     });
 
+    // 4. 瀏覽房屋
+    Route::get('/houses', [HouseController::class, 'index']);
+
     // house 相關
     Route::group(['prefix' => '/house'], function () {
         // 5. 查看房屋

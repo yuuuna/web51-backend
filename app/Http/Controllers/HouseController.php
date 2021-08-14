@@ -14,13 +14,71 @@ use Illuminate\Support\Facades\Validator;
 class HouseController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 瀏覽房屋
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // 找出精選房屋清單
+        $ads = DB::table('ads')
+                ->select('house_id', 'id')
+                ->where('ads.deleted_at', '=', null)
+                ->whereRaw('now() >= ads.publish_start_date')
+                ->whereRaw('now() <= ads.publish_end_date');
+
+        $order_field = $request->input('sort', 'created_at');
+        $order_method = $request->input('order', 'desc');
+        $houses = DB::table('houses')
+            ->join('houses_extra', 'houses_extra.house_id', '=', 'houses.id')
+            // 關聯精選房屋與房屋
+            ->leftJoinSub($ads, 'ads', function($join) {
+                $join->on('ads.house_id', '=', 'houses.id');
+            })
+            ->select(
+                // 若精選房屋有資料，顯示精選房屋的
+                // DB::raw('IF(ads.house_id IS NULL, 0, ads.id) AS ads_id'),
+                // 'ads.house_id',
+                'houses.title',
+                'houses.thumbnail_path',
+                'houses.price',
+                DB::raw('houses.price / houses.total_area AS unit_price'),
+                'houses.total_area',
+                DB::raw('houses.bedroom_count + houses.living_room_count + houses.dining_room_count + houses.kitchen_count + houses.bathroom_count AS room_count')
+            )
+            // 未被刪除的房屋
+            ->where('houses.deleted_at', '=', null)
+            ->where(function ($query) use ($request) {
+                // 價格最低比對
+                $price_low = $request->input('price_low', null);
+                if ($price_low) {
+                    $query->where('houses.price', '>=', $price_low);
+                }
+
+                // 價格最高比對
+                $price_high = $request->input('price_high', null);
+                if ($price_high) {
+                    $query->where('houses.price', '<=', $price_high);
+                }
+
+                // 房數比對
+                $room_count = $request->input('room_count', null);
+                if ($room_count) {
+                    $query->whereRaw('houses.bedroom_count + houses.living_room_count + houses.dining_room_count + houses.kitchen_count + houses.bathroom_count = ?', $room_count);
+                }
+
+                // 屋齡比對
+                $house_age = $request->input('house_age', null);
+                if ($house_age) {
+                    $query->whereRaw("YEAR(now()) - YEAR(houses.license_date) - (DATE_FORMAT(now(), '%m%d') < DATE_FORMAT(houses.license_date, '%m%d')) = ?", $house_age);
+                }
+            })
+            // ->orderBy('ads_id', 'desc')
+            ->orderByRaw('IF(ads.house_id IS NULL, 0, ads.id) desc')
+            ->orderBy($order_field, $order_method)
+            ->simplePaginate(10);
+
+        return $houses;
     }
 
     /**
@@ -56,8 +114,8 @@ class HouseController extends Controller
             'license_date' => 'date'
         ]);
         $area = Area::where('id', $request->input('area_id'))->first();
-        $city = City::where('id', $request->input('city_id'))->first();
-        if ($validator->fails() || !$area || !$city) {
+        $city = $area->city;
+        if ($validator->fails() || !$area) {
             return response()->json(['success' => false, 'message' => 'MSG_WROND_DATA_TYPE', 'data' => ''], 400);
         }
 

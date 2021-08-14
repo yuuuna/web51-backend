@@ -138,17 +138,16 @@ class AdsController extends Controller
         }
 
         // 更新 Ad Request
-        $now_date = Carbon::now();
         $ad_request = $ad->ad_request;
         $ad_request->review_status = $request->input('review_status');
         $ad_request->reviewer_id = $user->id;
-        $ad_request->reviewed_at = $now_date;
+        $ad_request->reviewed_at = Carbon::now();
         $ad_request->save();
 
         // 更新 Ad
         if ($request->input('review_status') === 'APPROVE') {
-            $ad->publish_start_date = $now_date;
-            $ad->publish_end_date = $now_date->addYear();
+            $ad->publish_start_date = Carbon::now();
+            $ad->publish_end_date = Carbon::now()->addYear();
             $ad->save();
         }
 
