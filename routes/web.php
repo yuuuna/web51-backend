@@ -48,6 +48,9 @@ Route::group(['prefix' => 'api/v1'], function () {
         Route::delete('/{id}', [HouseController::class, 'destroy']);
     });
 
+    // 9. 瀏覽收藏列表
+    Route::get('/collections', [CollectionController::class, 'index']);
+
     // 收藏列表 相關
     Route::group(['prefix' => '/collection'], function () {
         // 10. 將房屋加入收藏列表

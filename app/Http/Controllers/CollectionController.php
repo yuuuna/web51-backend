@@ -2,22 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Collection;
 use App\Models\User;
 use App\Models\House;
+use App\Models\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CollectionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 瀏覽收藏列表
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // 驗證: 無效 token
+        $token = $request->header('X-User-Token');
+        if (!$token) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        }
+
+        // 驗證: 權限不足
+        $user = User::where('token', $token)->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        }
+
+        $collection = DB::table('collections')
+            ->join('houses', 'houses.id', '=', 'collections.house_id')
+            ->select(
+                'houses.id',
+                'houses.title',
+                'houses.thumbnail_path',
+                'houses.price',
+                DB::raw('houses.price / houses.total_area AS unit_price'),
+                'houses.total_area',
+                DB::raw('houses.bedroom_count + houses.living_room_count + houses.dining_room_count + houses.kitchen_count + houses.bathroom_count AS room_count'),
+                'collections.created_at'
+            )
+            // 未被刪除的房屋
+            ->where('houses.deleted_at', '=', null)
+            ->where('houses.user_id', '=', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->simplePaginate(10);
+
+        return $collection;
     }
 
     /**
