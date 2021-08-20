@@ -65,6 +65,9 @@ Route::group(['prefix' => 'api/v1'], function () {
         // 12. 申請為精選房屋
         Route::post('/', [AdsController::class, 'store']);
 
+        // 13. 瀏覽精選房屋
+        Route::get('/', [AdsController::class, 'index']);
+
         // 14. 審核精選房屋
         Route::put('/{id}', [AdsController::class, 'update']);
 

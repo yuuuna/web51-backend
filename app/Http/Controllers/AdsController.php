@@ -8,18 +8,46 @@ use App\Models\User;
 use App\Models\House;
 use App\Models\AdRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AdsController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 瀏覽精選房屋
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // 驗證: 無效 token
+        $token = $request->header('X-User-Token');
+        $user = User::where('token', $token)->first();
+        if (!$token || !$user) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        }
+
+        // 驗證: 是否為管理員
+        if ($user->role !== 'ADMIN') {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        }
+
+        $ads = DB::table('ads')
+            ->join('houses', 'houses.id', '=', 'ads.house_id')
+            ->select(
+                'houses.title',
+                'houses.thumbnail_path',
+                'houses.price',
+                DB::raw('houses.price / houses.total_area AS unit_price'),
+                'houses.total_area',
+                DB::raw('houses.bedroom_count + houses.living_room_count + houses.dining_room_count + houses.kitchen_count + houses.bathroom_count AS room_count')
+            )
+            // 未被刪除的房屋
+            ->where('houses.deleted_at', '=', null)
+            ->where('houses.user_id', '=', $user->id)
+            ->simplePaginate(10);
+
+        return $ads;
     }
 
     /**
@@ -41,16 +69,16 @@ class AdsController extends Controller
             return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
         }
 
-        // 驗證: 是否有 token，沒有即是訪客
+        // 驗證: 無效 token
         $token = $request->header('X-User-Token');
         if (!$token) {
-            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
         }
 
-        // 驗證: 無效 token
+        // 驗證: 權限不足
         $user = User::where('token', $token)->first();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
         }
 
         // 驗證: 型態

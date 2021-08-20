@@ -89,16 +89,16 @@ class HouseController extends Controller
      */
     public function store(Request $request)
     {
-        // 驗證: 是否有 token，沒有即是訪客
+        // 驗證: 無效 token
         $token = $request->header('X-User-Token');
         if (!$token) {
-            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
         }
 
-        // 驗證: 無效 token
+        // 驗證: 權限不足
         $user = User::where('token', $token)->first();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
         }
 
         // 驗證: Require
@@ -214,17 +214,16 @@ class HouseController extends Controller
             return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
         }
 
-        // 驗證: 是否有 token，沒有即是訪客 or 是否為登入者刊登的
+        // 驗證: 無效 token
         $token = $request->header('X-User-Token');
-        $user = $house->user;
-        if (!$token || $token !== $user->token) {
-            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        if (!$token) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
         }
 
-        // 驗證: 無效 token
+        // 驗證: 權限不足
         $user = User::where('token', $token)->first();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        if (!$user || $user->id !== $house->user_id) {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
         }
 
         // 驗證: Require
@@ -317,17 +316,16 @@ class HouseController extends Controller
             return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
         }
 
-        // 驗證: 是否有 token，沒有即是訪客 or 是否為登入者刊登的
+        // 驗證: 無效 token
         $token = $request->header('X-User-Token');
-        $user = $house->user;
-        if (!$token || $token !== $user->token) {
-            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+        if (!$token) {
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
         }
 
-        // 驗證: 無效 token
+        // 驗證: 權限不足
         $user = User::where('token', $token)->first();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+        if (!$user || $user->id !== $house->user_id) {
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
         }
 
         // 刪除 house

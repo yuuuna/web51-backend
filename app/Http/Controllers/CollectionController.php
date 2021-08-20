@@ -122,16 +122,16 @@ class CollectionController extends Controller
             return response()->json(['success' => false, 'message' => 'MSG_HOUSE_NOT_EXISTS', 'data' => ''], 404);
         }
 
-        // 驗證: 是否有 token，沒有即是訪客
+        // 驗證: 無效 token
         $token = $request->header('X-User-Token');
         if (!$token) {
-            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
+            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
         }
 
-        // 驗證: 無效 token
+        // 驗證: 權限不足
         $user = User::where('token', $token)->first();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'MSG_INVALID_TOKEN', 'data' => ''], 401);
+            return response()->json(['success' => false, 'message' => 'MSG_PERMISSION_DENY', 'data' => ''], 403);
         }
 
         // 驗證: 房屋不存在收藏列表中
